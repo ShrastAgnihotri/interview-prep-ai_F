@@ -39,7 +39,23 @@ if (process.env.NODE_ENV !== 'production') {
 
 /** CORS configuration — allows credentials (cookies) from the frontend origin */
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      process.env.CLIENT_URL,
+      'http://localhost:5173',
+      'http://localhost:3000'
+    ].filter(Boolean);
+
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+
+    // Allow any Vercel preview deploy
+    if (origin.endsWith('.vercel.app') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
