@@ -3,7 +3,6 @@ import api from '../api/axiosInstance';
 
 const AuthContext = createContext();
 
-// Custom hook to use auth context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within AuthProvider');
@@ -23,6 +22,7 @@ export const AuthProvider = ({ children }) => {
     } catch {
       setUser(null);
       setIsAuthenticated(false);
+      localStorage.removeItem('token');
     } finally {
       setIsLoading(false);
     }
@@ -30,6 +30,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
+    // Store token in localStorage for cross-domain support
+    if (data.data?.token) {
+      localStorage.setItem('token', data.data.token);
+    }
     setUser(data.data);
     setIsAuthenticated(true);
     return data;
@@ -37,6 +41,10 @@ export const AuthProvider = ({ children }) => {
 
   const register = useCallback(async (name, email, password) => {
     const { data } = await api.post('/auth/register', { name, email, password });
+    // Store token in localStorage for cross-domain support
+    if (data.data?.token) {
+      localStorage.setItem('token', data.data.token);
+    }
     setUser(data.data);
     setIsAuthenticated(true);
     return data;
@@ -46,6 +54,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await api.post('/auth/logout');
     } finally {
+      localStorage.removeItem('token');
       setUser(null);
       setIsAuthenticated(false);
     }

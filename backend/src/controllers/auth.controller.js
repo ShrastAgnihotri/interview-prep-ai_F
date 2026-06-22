@@ -20,6 +20,7 @@ const getCookieOptions = () => ({
   secure: process.env.NODE_ENV === 'production',
   sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  partitioned: process.env.NODE_ENV === 'production', // Chrome CHIPS support
 });
 
 /**
@@ -74,7 +75,7 @@ const register = asyncHandler(async (req, res) => {
   res.cookie('token', token, getCookieOptions());
 
   res.status(201).json(
-    new ApiResponse(201, sanitizeUser(user), 'Account created successfully.')
+    new ApiResponse(201, { ...sanitizeUser(user), token }, 'Account created successfully.')
   );
 });
 
@@ -107,7 +108,7 @@ const login = asyncHandler(async (req, res) => {
   res.cookie('token', token, getCookieOptions());
 
   res.status(200).json(
-    new ApiResponse(200, sanitizeUser(user), 'Login successful.')
+    new ApiResponse(200, { ...sanitizeUser(user), token }, 'Login successful.')
   );
 });
 

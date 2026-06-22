@@ -18,8 +18,12 @@ const asyncHandler = require('../utils/asyncHandler');
  * @param {import('express').NextFunction} next
  */
 const authMiddleware = asyncHandler(async (req, _res, next) => {
-  // 1. Extract token from cookie
-  const token = req.cookies?.token;
+  // 1. Extract token from cookie or Authorization header
+  let token = req.cookies?.token;
+
+  if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
 
   if (!token) {
     throw ApiError.unauthorized('Authentication required. Please log in.');
